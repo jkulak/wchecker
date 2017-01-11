@@ -303,6 +303,7 @@ culpa qui officia deserunt mollit anim id est laborum.
 		}
 	}
 }
+
 func TestCheckQuicktest(t *testing.T) {
 	tests := []string{
 		`Lorem ip-sum dolor ipsum sit amet, consectetur adipiscing elit`,
@@ -313,6 +314,22 @@ func TestCheckQuicktest(t *testing.T) {
 		l := len(r)
 		if l != 1 {
 			t.Error("expected", 1, "got", l)
+		}
+	}
+}
+
+func TestCheckTwoErrors(t *testing.T) {
+	tests := []string{
+		`Lorem ip-sum dolor ipsum sit amet, am-et consectetur adipiscing elit`,
+		`Lorem ip-sum dolor ipsum sit amet, amet consectetur consectetu-r adipiscing elit`,
+		`Lorem ip-sum dolor ipsum sit amet, amet consectetur consectetur adipiscing elit L-orem`,
+	}
+
+	for _, v := range tests {
+		r := Check(&v)
+		l := len(r)
+		if l != 2 {
+			t.Error("expected", 2, "got", l)
 		}
 	}
 }
