@@ -1,9 +1,47 @@
 package main
 
-import "testing"
+import (
+	"regexp"
+	"testing"
+)
+
+func Test1stripPunctuation(t *testing.T) {
+	tests := []string{
+		"",
+		"welcome.",
+		"welcome welcome.",
+		"welcome welcome,",
+		"welcome welcome!",
+		"welcome welcome?",
+		"welcome welcome#",
+		"welcome welcome&",
+		"welcome*welcome",
+		"welcome,welcome",
+		"welcome,wel\ncome",
+		"!welcome,wel\ncome!",
+		"ŕwelcome,wel\ncome!",
+		"™welŃ™€€ßįß€come,wel\ncome!",
+		"welcome‒-—―‒-—―welcome", // four types of dashes
+		"wel-come welcome",
+		// there is only support for English language at the moment
+		"Pchnąć w tę łódź jeża lub ośm skrzyń fig",
+		"Pójdźże, kiń tę chmurność w głąb flaszy!",
+	}
+
+	re := regexp.MustCompile("[.,\\/#!$%\\^&\\*;:{}=_`~()\\[\\]]")
+
+	for _, v := range tests {
+		r := stripPunctuation(&v)
+
+		if re.MatchString(r) {
+			t.Error("expected no punctuation", "got a string with puctuation >", r)
+		}
+	}
+}
 
 func Test1HyphenTrue(t *testing.T) {
 	tests := []string{
+		"",
 		"welcome",
 		"welcome welcome",
 		"welcome welcome welcome",
@@ -32,13 +70,14 @@ func Test1HyphenTrue(t *testing.T) {
 		r := Check(&v)
 		l := len(r)
 		if l != 0 {
-			t.Error("expected", 0, "got", l)
+			t.Error("expected", 0, "got", l, "for:", v)
 		}
 	}
 }
 
 func Test1HyphenNewlineTrue(t *testing.T) {
 	tests := []string{
+		"\n",
 		"welcome\n",
 		"\nwelcome\n",
 		"\n\nwelcome\n",
@@ -229,6 +268,44 @@ func TestHyphenNewlineFalse(t *testing.T) {
 		"we-lcome\npe-ople\nwelcome\n",
 		"welc-ome pe-ople\nwelcome\n",
 		"\n\n\nwelco-me\n\n\npe-ople\n\n\nwelcome\n\n\n",
+	}
+
+	for _, v := range tests {
+		r := Check(&v)
+		l := len(r)
+		if l != 1 {
+			t.Error("expected", 1, "got", l)
+		}
+	}
+}
+
+func TestCheckLongstring(t *testing.T) {
+	tests := []string{
+		`Lorem    ipsum dolor sit amet, consectetur adipiscing elit,
+                    sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
+nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
+reprehenderit in voluptate ip-sum velit esse cillum dolore eu fugiat nulla
+pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+culpa qui officia deserunt mollit anim id est laborum.
+
+
+
+
+`,
+	}
+
+	for _, v := range tests {
+		r := Check(&v)
+		l := len(r)
+		if l != 1 {
+			t.Error("expected", 1, "got", l)
+		}
+	}
+}
+func TestCheckQuicktest(t *testing.T) {
+	tests := []string{
+		`Lorem ip-sum dolor ipsum sit amet, consectetur adipiscing elit`,
 	}
 
 	for _, v := range tests {
